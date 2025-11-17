@@ -1,0 +1,95 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Restaurant {
+  id                 Int            @id @default(autoincrement())
+  name               String
+  slug               String         @unique
+  description        String?
+  logoUrl            String?
+  primaryColor       String         @default("#DC2626")
+  secondaryColor     String         @default("#991B1B")
+  accentColor        String         @default("#F87171")
+  phone              String?
+  address            String?
+  instagram          String?
+  wifiName           String?
+  wifiPassword       String?
+  languageDefault    String         @default("tr")
+  supportedLanguages String         @default("tr,en") // comma-separated
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+
+  openingHours       OpeningHour[]
+  menuCategories     MenuCategory[]
+
+  @@map("restaurants")
+}
+
+model OpeningHour {
+  id           Int        @id @default(autoincrement())
+  restaurantId Int
+  dayOfWeek    Int        // 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+  openTime     String     // "09:00"
+  closeTime    String     // "23:30"
+  isClosed     Boolean    @default(false)
+
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@map("opening_hours")
+}
+
+model MenuCategory {
+  id             Int        @id @default(autoincrement())
+  restaurantId   Int
+  slug           String
+  type           String     // "food" or "drink"
+  order          Int        @default(0)
+  name_tr        String
+  name_en        String?
+  description_tr String?
+  description_en String?
+  isVisible      Boolean    @default(true)
+  icon           String?    // lucide icon name
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  restaurant     Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  menuItems      MenuItem[]
+
+  @@map("menu_categories")
+}
+
+model MenuItem {
+  id             Int          @id @default(autoincrement())
+  categoryId     Int
+  order          Int          @default(0)
+  name_tr        String
+  name_en        String?
+  description_tr String?
+  description_en String?
+  price          Float
+  currency       String       @default("TRY")
+  isPopular      Boolean      @default(false)
+  isNew          Boolean      @default(false)
+  isSpicy        Boolean      @default(false)
+  isVegan        Boolean      @default(false)
+  allergens      String       @default("") // comma-separated
+  imageUrl       String?
+  isVisible      Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  category       MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@map("menu_items")
+}
