@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma'
+import { env } from '@/lib/env'
 import Link from 'next/link'
 import { Card, CardHeader, CardContent } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
@@ -37,7 +38,7 @@ export default async function AdminDashboard() {
     0
   )
 
-  const menuUrl = `${process.env.NEXT_PUBLIC_APP_URL}/menu/${restaurant.slug}`
+  const menuUrl = `${env.NEXT_PUBLIC_APP_URL}/menu/${restaurant.slug}`
 
   return (
     <div className="max-w-6xl">

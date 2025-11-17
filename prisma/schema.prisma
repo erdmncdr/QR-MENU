@@ -45,6 +45,7 @@ model OpeningHour {
 
   restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
 
+  @@index([restaurantId, dayOfWeek])
   @@map("opening_hours")
 }
 
@@ -66,6 +67,9 @@ model MenuCategory {
   restaurant     Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
   menuItems      MenuItem[]
 
+  @@index([restaurantId, order])
+  @@index([restaurantId, slug])
+  @@index([isVisible])
   @@map("menu_categories")
 }
 
@@ -91,5 +95,8 @@ model MenuItem {
 
   category       MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
+  @@index([categoryId, order])
+  @@index([isVisible])
+  @@index([isPopular])
   @@map("menu_items")
 }
