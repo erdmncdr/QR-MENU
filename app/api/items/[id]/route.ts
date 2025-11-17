@@ -1,23 +1,57 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import {
+  idParamSchema,
+  updateMenuItemSchema,
+  formatZodErrors
+} from '@/lib/validations'
+import { z } from 'zod'
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    // Validate ID parameter
+    const paramValidation = idParamSchema.safeParse(params)
+    if (!paramValidation.success) {
+      return NextResponse.json(
+        { error: 'Invalid ID', details: formatZodErrors(paramValidation.error) },
+        { status: 400 }
+      )
+    }
+
     const body = await request.json()
-    const itemId = parseInt(params.id)
+
+    // Validate request body
+    const bodyValidation = updateMenuItemSchema.safeParse(body)
+    if (!bodyValidation.success) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: formatZodErrors(bodyValidation.error) },
+        { status: 400 }
+      )
+    }
 
     const item = await prisma.menuItem.update({
-      where: { id: itemId },
-      data: body,
+      where: { id: paramValidation.data.id },
+      data: bodyValidation.data,
     })
 
     return NextResponse.json(item)
   } catch (error) {
     console.error('Error updating item:', error)
-    return NextResponse.json({ error: 'Failed to update item' }, { status: 500 })
+
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation failed', details: formatZodErrors(error) },
+        { status: 400 }
+      )
+    }
+
+    return NextResponse.json(
+      { error: 'Failed to update item' },
+      { status: 500 }
+    )
   }
 }
 
@@ -26,15 +60,25 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const itemId = parseInt(params.id)
+    // Validate ID parameter
+    const paramValidation = idParamSchema.safeParse(params)
+    if (!paramValidation.success) {
+      return NextResponse.json(
+        { error: 'Invalid ID', details: formatZodErrors(paramValidation.error) },
+        { status: 400 }
+      )
+    }
 
     await prisma.menuItem.delete({
-      where: { id: itemId },
+      where: { id: paramValidation.data.id },
     })
 
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Error deleting item:', error)
-    return NextResponse.json({ error: 'Failed to delete item' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to delete item' },
+      { status: 500 }
+    )
   }
 }

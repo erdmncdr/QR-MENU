@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Card, CardHeader, CardContent } from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import QRCodeDisplay from '../QRCodeDisplay'
+import { getMenuUrl } from '@/lib/config'
 import { Save } from 'lucide-react'
 
 type Restaurant = {
@@ -62,7 +63,7 @@ export default function SettingsForm({ initialData }: { initialData: Restaurant 
     }
   }
 
-  const menuUrl = `${process.env.NEXT_PUBLIC_APP_URL}/menu/${formData.slug}`
+  const menuUrl = getMenuUrl(formData.slug)
 
   return (
     <form onSubmit={handleSubmit} className="max-w-5xl">
