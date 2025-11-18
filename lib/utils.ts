@@ -25,7 +25,15 @@ export function getDayName(dayOfWeek: number, lang: 'tr' | 'en' = 'tr'): string 
   return daysTr[dayOfWeek] || ''
 }
 
-export function getTodayOpeningHours(openingHours: any[]) {
+export interface OpeningHour {
+  id: number
+  dayOfWeek: number
+  openTime: string
+  closeTime: string
+  isClosed: boolean
+}
+
+export function getTodayOpeningHours(openingHours: OpeningHour[]): OpeningHour | undefined {
   const today = new Date().getDay()
   return openingHours.find((h) => h.dayOfWeek === today)
 }

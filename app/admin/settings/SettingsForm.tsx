@@ -6,6 +6,7 @@ import Button from '@/components/ui/Button'
 import QRCodeDisplay from '../QRCodeDisplay'
 import { getMenuUrl } from '@/lib/config'
 import { Save } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 type Restaurant = {
   id: number
@@ -28,7 +29,6 @@ type Restaurant = {
 export default function SettingsForm({ initialData }: { initialData: Restaurant }) {
   const [formData, setFormData] = useState(initialData)
   const [isSaving, setIsSaving] = useState(false)
-  const [saveMessage, setSaveMessage] = useState('')
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -40,7 +40,8 @@ export default function SettingsForm({ initialData }: { initialData: Restaurant 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSaving(true)
-    setSaveMessage('')
+
+    const toastId = toast.loading('Ayarlar kaydediliyor...')
 
     try {
       const response = await fetch(`/api/restaurant/${formData.id}`, {
@@ -49,15 +50,15 @@ export default function SettingsForm({ initialData }: { initialData: Restaurant 
         body: JSON.stringify(formData),
       })
 
-      if (response.ok) {
-        setSaveMessage('Ayarlar başarıyla kaydedildi!')
-        setTimeout(() => setSaveMessage(''), 3000)
-      } else {
-        setSaveMessage('Kayıt sırasında bir hata oluştu.')
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Ayarlar kaydedilemedi')
       }
+
+      toast.success('Ayarlar başarıyla kaydedildi!', { id: toastId })
     } catch (error) {
       console.error('Error saving settings:', error)
-      setSaveMessage('Kayıt sırasında bir hata oluştu.')
+      toast.error(error instanceof Error ? error.message : 'Kayıt sırasında bir hata oluştu', { id: toastId })
     } finally {
       setIsSaving(false)
     }
@@ -320,20 +321,7 @@ export default function SettingsForm({ initialData }: { initialData: Restaurant 
         </Card>
 
         {/* Save Button */}
-        <div className="flex items-center justify-between">
-          <div>
-            {saveMessage && (
-              <p
-                className={`text-sm ${
-                  saveMessage.includes('başarıyla')
-                    ? 'text-green-600'
-                    : 'text-red-600'
-                }`}
-              >
-                {saveMessage}
-              </p>
-            )}
-          </div>
+        <div className="flex items-center justify-end">
           <Button type="submit" disabled={isSaving}>
             <Save className="w-4 h-4 mr-2" />
             {isSaving ? 'Kaydediliyor...' : 'Ayarları Kaydet'}

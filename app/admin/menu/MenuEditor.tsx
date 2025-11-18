@@ -13,6 +13,7 @@ import {
   ChevronDown,
 } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
+import toast from 'react-hot-toast'
 
 type MenuItem = {
   id: number
@@ -71,15 +72,20 @@ export default function MenuEditor({ initialData }: { initialData: Restaurant })
         body: JSON.stringify({ isVisible: !category.isVisible }),
       })
 
-      if (response.ok) {
-        setCategories(
-          categories.map((c) =>
-            c.id === categoryId ? { ...c, isVisible: !c.isVisible } : c
-          )
-        )
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Kategori güncellenemedi')
       }
+
+      setCategories(
+        categories.map((c) =>
+          c.id === categoryId ? { ...c, isVisible: !c.isVisible } : c
+        )
+      )
+      toast.success(category.isVisible ? 'Kategori gizlendi' : 'Kategori gösterildi')
     } catch (error) {
       console.error('Error toggling category visibility:', error)
+      toast.error(error instanceof Error ? error.message : 'Kategori durumu değiştirilemedi')
     }
   }
 
@@ -96,28 +102,33 @@ export default function MenuEditor({ initialData }: { initialData: Restaurant })
         body: JSON.stringify({ isVisible: !item.isVisible }),
       })
 
-      if (response.ok) {
-        setCategories(
-          categories.map((c) =>
-            c.id === selectedCategory.id
-              ? {
-                  ...c,
-                  menuItems: c.menuItems.map((i) =>
-                    i.id === itemId ? { ...i, isVisible: !i.isVisible } : i
-                  ),
-                }
-              : c
-          )
-        )
-        setSelectedCategory({
-          ...selectedCategory,
-          menuItems: selectedCategory.menuItems.map((i) =>
-            i.id === itemId ? { ...i, isVisible: !i.isVisible } : i
-          ),
-        })
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Ürün güncellenemedi')
       }
+
+      setCategories(
+        categories.map((c) =>
+          c.id === selectedCategory.id
+            ? {
+                ...c,
+                menuItems: c.menuItems.map((i) =>
+                  i.id === itemId ? { ...i, isVisible: !i.isVisible } : i
+                ),
+              }
+            : c
+        )
+      )
+      setSelectedCategory({
+        ...selectedCategory,
+        menuItems: selectedCategory.menuItems.map((i) =>
+          i.id === itemId ? { ...i, isVisible: !i.isVisible } : i
+        ),
+      })
+      toast.success(item.isVisible ? 'Ürün gizlendi' : 'Ürün gösterildi')
     } catch (error) {
       console.error('Error toggling item visibility:', error)
+      toast.error(error instanceof Error ? error.message : 'Ürün durumu değiştirilemedi')
     }
   }
 
@@ -125,29 +136,36 @@ export default function MenuEditor({ initialData }: { initialData: Restaurant })
     if (!selectedCategory) return
     if (!confirm('Bu ürünü silmek istediğinizden emin misiniz?')) return
 
+    const toastId = toast.loading('Ürün siliniyor...')
+
     try {
       const response = await fetch(`/api/items/${itemId}`, {
         method: 'DELETE',
       })
 
-      if (response.ok) {
-        setCategories(
-          categories.map((c) =>
-            c.id === selectedCategory.id
-              ? {
-                  ...c,
-                  menuItems: c.menuItems.filter((i) => i.id !== itemId),
-                }
-              : c
-          )
-        )
-        setSelectedCategory({
-          ...selectedCategory,
-          menuItems: selectedCategory.menuItems.filter((i) => i.id !== itemId),
-        })
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Ürün silinemedi')
       }
+
+      setCategories(
+        categories.map((c) =>
+          c.id === selectedCategory.id
+            ? {
+                ...c,
+                menuItems: c.menuItems.filter((i) => i.id !== itemId),
+              }
+            : c
+        )
+      )
+      setSelectedCategory({
+        ...selectedCategory,
+        menuItems: selectedCategory.menuItems.filter((i) => i.id !== itemId),
+      })
+      toast.success('Ürün başarıyla silindi', { id: toastId })
     } catch (error) {
       console.error('Error deleting item:', error)
+      toast.error(error instanceof Error ? error.message : 'Ürün silinemedi', { id: toastId })
     }
   }
 
