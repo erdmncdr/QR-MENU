@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Home, UtensilsCrossed, Settings, QrCode } from 'lucide-react'
+import { Home, UtensilsCrossed, Settings, QrCode, Building2 } from 'lucide-react'
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -33,6 +33,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <nav className="p-4 space-y-2">
             <NavLink href="/admin" icon={<Home className="w-5 h-5" />}>
               Dashboard
+            </NavLink>
+            <NavLink href="/admin/restaurants" icon={<Building2 className="w-5 h-5" />}>
+              Restoranlarım
             </NavLink>
             <NavLink href="/admin/menu" icon={<UtensilsCrossed className="w-5 h-5" />}>
               Menü Yönetimi

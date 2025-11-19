@@ -94,3 +94,32 @@ export async function PUT(
     )
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // Validate ID parameter
+    const paramValidation = idParamSchema.safeParse(params)
+    if (!paramValidation.success) {
+      return NextResponse.json(
+        { error: 'Invalid ID', details: formatZodErrors(paramValidation.error) },
+        { status: 400 }
+      )
+    }
+
+    // Delete restaurant (cascades to categories, items, opening hours)
+    await prisma.restaurant.delete({
+      where: { id: paramValidation.data.id },
+    })
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting restaurant:', error)
+    return NextResponse.json(
+      { error: 'Failed to delete restaurant' },
+      { status: 500 }
+    )
+  }
+}
